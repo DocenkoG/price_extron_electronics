@@ -8,8 +8,8 @@ import sys
 import configparser
 #import time
 import shutil
-#import openpyxl                       # Для .xlsx
-import xlrd                            # для .xls
+#import openpyxl                      # Для .xlsx
+import xlrd                           # для .xls
 from   price_tools import getCellXlsx, getCell, quoted, dump_cell, currencyType, subInParentheses
 
 
