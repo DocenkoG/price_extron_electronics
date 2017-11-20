@@ -8,45 +8,45 @@ import sys
 import configparser
 #import time
 import shutil
-import openpyxl                       # Для .xlsx
-# import xlrd                         # для .xls
-from   price_tools import getCellXlsx, quoted, dump_cell, currencyType, subInParentheses
+#import openpyxl                       # Для .xlsx
+import xlrd                            # для .xls
+from   price_tools import getCellXlsx, getCell, quoted, dump_cell, currencyType, subInParentheses
 
 
 
-def convert_sheet( book, sheetName):
-    confName = ('cfg_'+sheetName.replace(' ','').replace('.','')+'.cfg').lower()
-    csvFName = ('csv_'+sheetName.replace(' ','').replace('.','')+'.csv').lower()
+def convert_sheet( dealerName, sheet):
+    confName = ('cfg_'+dealerName+'.cfg').lower()
+    csvFName = ('csv_'+dealerName+'.csv').lower()
     if not os.path.exists( confName ) :
         log.error( 'Нет файла конфигурации '+confName)
         return
     # Прочитать конфигурацию из файла
     in_columns_j, out_columns = config_read( confName )
-    sh = book[sheetName]                                     # xlsx
+    #sh = book[sheetName]                                     # xlsx
     ssss = []
-    for i in range(sh.min_row, sh.max_row) :
+    for i in range(1, sheet.nrows) :
         i_last = i
         try:
-            ccc = sh.cell(row=i, column= 2 )
+            ccc = sheet.cell( i, in_columns_j['цена']-1 )
             if  ccc.value == None  :                                # Пустая строка
                 pass
-                #print( 'Пустая строка. i=', i )
-    
-            elif ccc.value[0:9] == 'Категория' :                    # Заголовок таблицы
-                pass
+                print( 'Пустая строка. i=', i )
     
             else :                                                  # Информационная строка
-                impValues = getXlsxString(sh, i, in_columns_j)
+                impValues = getXlsString(sheet, i, in_columns_j)
                 sss = []                                            # формируемая строка для вывода в файл
                 for outColName in out_columns.keys() :
                     shablon = out_columns[outColName]
                     for key in impValues.keys():
                         if shablon.find(key) >= 0 :
                             shablon = shablon.replace(key, impValues[key])
-                    if   (outColName == 'описание') and ('тип_сенсора' in impValues) :
-                       shablon = appendSensor( shablon, impValues)
-                    elif (outColName == 'закупка') and ('*' in shablon) :
-                       shablon = str( 0.8 * float( impValues['продажа']) )
+                    if (outColName == 'закупка') and ('*' in shablon) :
+                        #print(shablon)
+                        kkkk = float( shablon[  shablon.find('*')+1 : ] )
+                        #print(kkkk)
+                        vvvv = float( shablon[ :shablon.find('*')     ] )
+                        #print(vvvv)
+                        shablon = str( kkkk * float( vvvv ) )
                     sss.append( quoted( shablon))
                 ssss.append(','.join(sss))
                     
@@ -120,6 +120,24 @@ def getXlsxString(sh, i, in_columns_j):
 
 
 
+def getXlsString(sh, i, in_columns_j):
+    impValues = {}
+    for item in in_columns_j.keys() :
+        j = in_columns_j[item] -1
+        if item in ('закупка','продажа','цена') :
+            if getCell(row=i, col=j, isDigit='N', sheet=sh).find('Звоните') >=0 :
+                impValues[item] = '0.1'
+            else :
+                impValues[item] = getCell(row=i, col=j, isDigit='Y', sheet=sh)
+            #print(sh, i, sh.cell( row=i, column=j).value, sh.cell(row=i, column=j).number_format, currencyType(sh, i, j))
+        elif item == 'валюта_по_формату':
+            impValues[item] = currencyType(row=i, col=j, sheet=sh)
+        else:
+            impValues[item] = getCell(row=i, col=j, isDigit='N', sheet=sh)
+    return impValues
+
+
+
 def config_read( cfgFName ):
     log.debug('Reading config ' + cfgFName )
     
@@ -146,23 +164,13 @@ def config_read( cfgFName ):
 
 
 def convert2csv( dealerName ):
-    fileNameIn = 'new_'+dealerName+'.xlsx'
-    book = openpyxl.load_workbook(filename = fileNameIn, read_only=False, keep_vba=False, data_only=False)
-#   book = xlrd.open_workbook( fileNameIn.encode('cp1251'), formatting_info=True)
-    sheetNames = book.get_sheet_names()
-    for sheetName in sheetNames :                                # Организую цикл по страницам
-        log.info('-------------------  '+sheetName +'  ----------')
-        if   sheetName == 'Samsung'       : convert_sheet( book, sheetName)
-        elif sheetName == 'LG'            : convert_sheet( book, sheetName)
-        elif sheetName == 'NEC'           : convert_sheet( book, sheetName)
-        elif sheetName == 'BENQ'          : convert_sheet( book, sheetName)
-        elif sheetName == 'SHARP'         : convert_sheet( book, sheetName)
-        elif sheetName == 'Iiyama'        : convert_sheet( book, sheetName)
-        elif sheetName == 'Philips'       : convert_sheet( book, sheetName)
-        elif sheetName == 'ViewSonic'     : convert_sheet( book, sheetName)
-        elif sheetName == 'Panasonic'     : convert_sheet( book, sheetName)
-        elif sheetName == 'Проекторы Panasonic': convert_sheet( book, sheetName)
-        #else : log.debug('Не конвертируем лист '+sheetName )
+    fileNameIn = 'new_'+dealerName+'.xls'
+#   book = openpyxl.load_workbook(filename = fileNameIn, read_only=False, keep_vba=False, data_only=False)
+    book = xlrd.open_workbook( fileNameIn.encode('cp1251'), formatting_info=True)
+#   sheetNames = book.get_sheet_names()                          # xlsx
+    sheet = book.sheets()[0]                                     # xls                               
+    log.info('-------------------  '+sheet.name +'  ----------')
+    convert_sheet( dealerName, sheet)
 
 
 
@@ -186,4 +194,4 @@ if __name__ == '__main__':
     myName = os.path.basename(os.path.splitext(sys.argv[0])[0])
     mydir    = os.path.dirname (sys.argv[0])
     print(mydir, myName)
-    main( 'profdisplay')
+    main( 'extron_electronics')
