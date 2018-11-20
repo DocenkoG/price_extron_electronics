@@ -241,7 +241,7 @@ def download( cfg ):
             #driver = webdriver.Firefox(ffprofile, executable_path=r'/usr/local/Cellar/geckodriver/0.19.1/bin/geckodriver')
             driver = webdriver.Firefox(ffprofile, executable_path=r'/usr/local/bin/geckodriver')
         elif os.name == 'nt':
-            driver = webdriver.Firefox(ffprofile)
+            driver = webdriver.Firefox(ffprofile, executable_path='c:\\Program Files (x86)\\geckodriver\\geckodriver.exe')
         driver.implicitly_wait(30)
         
         driver.get(url_lk)
@@ -372,8 +372,8 @@ def processing(cfgFName):
     filename_new = cfg.get('download','filename_new')
     
     rc_download = False
-#    if cfg.has_section('download'):
-#        rc_download = download(cfg)
+    if cfg.has_section('download'):
+        rc_download = download(cfg)
     if rc_download==True or is_file_fresh( filename_new, int(cfg.get('basic','срок годности'))):
         #os.system( 'marvel_converter_xlsx.xlsm')
         #convert_csv2csv(cfg)
