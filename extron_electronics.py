@@ -242,7 +242,9 @@ def download( cfg ):
             driver = webdriver.Firefox(ffprofile, executable_path=r'/usr/local/bin/geckodriver')
         elif os.name == 'nt':
             driver = webdriver.Firefox(ffprofile, executable_path='c:\\Program Files (x86)\\geckodriver\\geckodriver.exe')
-        driver.implicitly_wait(30)
+        driver.implicitly_wait(20)
+        driver.set_page_load_timeout(20)
+
         
         driver.get(url_lk)
         time.sleep(2)
@@ -259,11 +261,11 @@ def download( cfg ):
         driver.find_element_by_xpath(u"(//a[contains(text(),'Прайслист в формате Excel')])[2]").click()
         driver.find_element_by_xpath("//p[2]/a").click()
 
-        time.sleep(3)
-        driver.quit()
-
     except Exception as e:
         log.debug('Exception: <' + str(e) + '>')
+
+    time.sleep(2)
+    driver.quit()
 
     dir_afte_download = set(os.listdir(download_path))
     new_files = list( dir_afte_download.difference(dir_befo_download))
