@@ -1,3 +1,3 @@
 python.exe extron_electronics.py
 
- pause 
+rem pause 
