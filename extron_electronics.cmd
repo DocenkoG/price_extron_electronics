@@ -1,5 +1,3 @@
-chcp 1251
+python.exe extron_electronics.py
 
-"c:\Program Files\Python35\python.exe" extron_electronics.py
-
-rem pause 
+ pause 

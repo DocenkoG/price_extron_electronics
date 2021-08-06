@@ -12,7 +12,7 @@ import openpyxl                      # Для .xlsx
 from   price_tools import getCellXlsx, getCell, quoted, dump_cell, currencyType, openX, sheetByName
 import csv
 import requests, lxml.html
-
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 def getXlsString(sh, i, in_columns_j):
@@ -156,6 +156,7 @@ def convert_excel2csv(cfg):
 
 def download( cfg ):
     from selenium import webdriver
+    from selenium.webdriver.common.by import By
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.remote.remote_connection import LOGGER
     LOGGER.setLevel(logging.WARNING)
@@ -241,25 +242,41 @@ def download( cfg ):
             #driver = webdriver.Firefox(ffprofile, executable_path=r'/usr/local/Cellar/geckodriver/0.19.1/bin/geckodriver')
             driver = webdriver.Firefox(ffprofile, executable_path=r'/usr/local/bin/geckodriver')
         elif os.name == 'nt':
-            driver = webdriver.Firefox(ffprofile, executable_path='c:\\Program Files (x86)\\geckodriver\\geckodriver.exe')
+            driver = webdriver.Firefox(ffprofile) #, executable_path='c:\\Program Files (x86)\\geckodriver\\geckodriver.exe')
         driver.implicitly_wait(20)
         driver.set_page_load_timeout(20)
 
-        
         driver.get(url_lk)
+        driver.set_window_size(1000, 800)
+        driver.find_element(By.CSS_SELECTOR, "#dropdown-login > strong").click()
+        driver.find_element(By.XPATH, "//fieldset/div[2]/input").send_keys(login)
+        print('debug-00')
+        time.sleep(1)            
+        driver.find_element(By.XPATH, "//fieldset/div[3]/div/input").click()
+        driver.find_element(By.XPATH, "//fieldset/div[3]/div/input").send_keys(password)
+        print('debug-01')
+        time.sleep(1)
+        #                  -- пример работы с некликабельным элементом 
+        element = driver.find_element(By.CSS_SELECTOR, ".btn:nth-child(6)")
+        actions = ActionChains(driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        print('debug-2')
+        time.sleep(1)
+        element = driver.find_element(By.XPATH, "//button[@type=\'submit\']")
+        actions = ActionChains(driver)
+        actions.move_to_element(element).perform()
+        print('debug-3')
+        element = driver.find_element(By.CSS_SELECTOR, ".btn:nth-child(6)")
+        actions = ActionChains(driver)
+        actions.move_to_element(element).release().perform()
+        print('debug-4')
+        time.sleep(5)
+        #                   -- конец примера
+        driver.get("https://www.extron.com/myaccount/excelpricelist")
+        print('debug-5')
         time.sleep(2)
-        driver.find_element_by_link_text(u"Войти").click()
-        driver.find_element_by_id("username").click()
-        driver.find_element_by_id("username").clear()
-        driver.find_element_by_id("username").send_keys(login)
-        driver.find_element_by_id("password").click()
-        driver.find_element_by_id("password").clear()
-        driver.find_element_by_id("password").send_keys(password)
-        driver.find_element_by_id("rememberMe").click()
-        driver.find_element_by_xpath("//div[@id='form-widget']/div/form/div[3]/div/div[2]/button").click()
-        driver.find_element_by_xpath("//a[@id='insiderAccess']/span").click()
-        driver.find_element_by_xpath(u"(//a[contains(text(),'Прайслист в формате Excel')])[2]").click()
-        driver.find_element_by_xpath("//p[2]/a").click()
+        driver.find_element(By.XPATH, "//p[2]/a").click()
+        time.sleep(3)
 
     except Exception as e:
         log.debug('Exception: <' + str(e) + '>')
@@ -350,7 +367,7 @@ def is_file_fresh(fileName, qty_days):
         log.error('Не найден файл  '+ fileName)
         return False
 
-    if price_datetime+qty_seconds < time.time() :
+    if price_datetime + qty_seconds < time.time() :
         file_age = round((time.time()-price_datetime)/24/60/60)
         log.error('Файл "'+fileName+'" устарел!  Допустимый период '+ str(qty_days)+' дней, а ему ' + str(file_age) )
         return False
@@ -376,6 +393,7 @@ def processing(cfgFName):
     rc_download = False
     if cfg.has_section('download'):
         rc_download = download(cfg)
+        pass
     if rc_download==True or is_file_fresh( filename_new, int(cfg.get('basic','срок годности'))):
         #os.system( 'marvel_converter_xlsx.xlsm')
         #convert_csv2csv(cfg)
