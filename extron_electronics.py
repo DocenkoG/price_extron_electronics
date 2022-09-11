@@ -392,7 +392,7 @@ def processing(cfgFName):
     
     rc_download = False
     if cfg.has_section('download'):
-        rc_download = download(cfg)
+        #rc_download = download(cfg)
         pass
     if rc_download==True or is_file_fresh( filename_new, int(cfg.get('basic','срок годности'))):
         #os.system( 'marvel_converter_xlsx.xlsm')

@@ -26,7 +26,7 @@ def sheetByName( fileName
             book = xlrd.open_workbook( fileName.encode('cp1251'), formatting_info=True)                          # xls
             sheet = book.sheet_by_name(sheetName)
     except Exception as e:
-        print("<%s> <%s> <%S> <<%s>>",fileName, typeX, sheetName,e)
+        print("<%s> <%s> <%S> <<%s>>" % (fileName, typeX, sheetName,e))
         sheet = False
     return sheet
 
