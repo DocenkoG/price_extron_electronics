@@ -156,6 +156,8 @@ def convert_excel2csv(cfg):
 
 def download( cfg ):
     from selenium import webdriver
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver.common.by import By
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.remote.remote_connection import LOGGER
@@ -247,31 +249,14 @@ def download( cfg ):
         driver.set_page_load_timeout(20)
 
         driver.get(url_lk)
-        driver.set_window_size(1000, 800)
-        driver.find_element(By.CSS_SELECTOR, "#dropdown-login > strong").click()
-        driver.find_element(By.XPATH, "//fieldset/div[2]/input").send_keys(login)
-        print('debug-00')
-        time.sleep(1)            
-        driver.find_element(By.XPATH, "//fieldset/div[3]/div/input").click()
-        driver.find_element(By.XPATH, "//fieldset/div[3]/div/input").send_keys(password)
-        print('debug-01')
-        time.sleep(1)
-        #                  -- пример работы с некликабельным элементом 
-        element = driver.find_element(By.CSS_SELECTOR, ".btn:nth-child(6)")
-        actions = ActionChains(driver)
-        actions.move_to_element(element).click_and_hold().perform()
-        print('debug-2')
-        time.sleep(1)
-        element = driver.find_element(By.XPATH, "//button[@type=\'submit\']")
-        actions = ActionChains(driver)
-        actions.move_to_element(element).perform()
-        print('debug-3')
-        element = driver.find_element(By.CSS_SELECTOR, ".btn:nth-child(6)")
-        actions = ActionChains(driver)
-        actions.move_to_element(element).release().perform()
-        print('debug-4')
-        time.sleep(5)
-        #                   -- конец примера
+        driver.set_window_size(1481, 1046)
+        driver.find_element(By.XPATH, "//a[@id=\'dropdown-login\']/strong").click()
+        driver.find_element(By.XPATH, "//div[2]/div/div[2]/input").send_keys("gleb@av-prom.ru")
+        driver.find_element(By.XPATH, "//div/div[3]/div/input").send_keys("Us?8i}3QqJ")
+        print('debug-100')
+        driver.find_element(By.XPATH, "//div[2]/div/button/span").click()
+        print('debug-200')
+        time.sleep(2)
         driver.get("https://www.extron.com/myaccount/excelpricelist")
         print('debug-5')
         time.sleep(2)
@@ -392,11 +377,10 @@ def processing(cfgFName):
     
     rc_download = False
     if cfg.has_section('download'):
-        #rc_download = download(cfg)
+        rc_download = download(cfg)
         pass
     if rc_download==True or is_file_fresh( filename_new, int(cfg.get('basic','срок годности'))):
-        #os.system( 'marvel_converter_xlsx.xlsm')
-        #convert_csv2csv(cfg)
+        os.system( 'extron_converter_xlsx.xlsm')
         convert_excel2csv(cfg)
     
 
